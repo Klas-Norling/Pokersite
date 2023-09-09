@@ -4,6 +4,7 @@
   <div class="message-box">
   <h2>Room: {{code}}</h2>
   <h4 id="maxplayer">Players: 1/8</h4>
+  <h4 id="bettingamount"></h4>
   <div class="messages" id="messages"></div>
   <div class="inputs">
     <input type="text" rows="3" placeholder="Message" name="message" id="message"/>
@@ -29,11 +30,20 @@
 
   });
 
-  socketio.on("update_values", (data) => { //update the values in maxplayer count and also other functionalities in the future. 
-                            //it isn't connected to the server though
+  socketio.on("update_values", (data) => { //update the values in maxplayer count 
     const values = document.getElementById("maxplayer");
+    console.log(data.data)
     values.innerHTML=`Players: ${data.data}/8`;
+
   });
+
+  socketio.on("update_bettingamount", (data) => { //update the values in betting amount 
+    const values = document.getElementById("bettingamount");
+    console.log(data.data)
+    values.innerHTML=`${data.data}`;
+
+  });
+
 
   const createMessage = (name, msg) => {
     const content = `

@@ -78,14 +78,15 @@ def message(data):
 def connect(auth):
     room=session.get("room")
     name=session.get("name")
+    betting=session.get("betting")
     print("CONNECT ERROR??====================================BEGIN")
     if not room or not name:
         print("here")
-        return 
+        return redirect('/')
     if user.room_exists(room)==False:
         print("also here IM IN HERE")
         leave_room(room)
-        return 
+        return redirect('/')
     print("am i also here")
     join_room(room)
     send({"name": name, "message":"has joined the room"}, to=room)
@@ -97,6 +98,7 @@ def connect(auth):
     else:
         maxplayers=maxplayers+1
     emit('update_values',{'data':maxplayers},to=room)
+    emit('update_bettingamount',{'data':betting},broadcast=False)
     user.add_member(room)
     print(f"{name} has joined room {room}")
     print("CONNECT ERROR??====================================END")
@@ -128,6 +130,7 @@ def disconnect():
 @socketio.on("button")
 def button(data):
     value=data["data"]
+    betting=session.get("betting")
     if value == "check":                #check function
         print("check is here")
         emit('button_response',{'response':"check is here"},broadcast=False)
@@ -138,8 +141,27 @@ def button(data):
 
     else:                               #Bet function
         print(value, "bet is here")
-        emit('button_response',{'response':"bet is here"},broadcast=False)
+        print(betting)
 
+        if(int(betting)<=0):
+            emit('update_bettingamount',{'data':"YOU HAVE NO MONEY, YOU LOSE"},broadcast=False)
+            session["betting"]=0
+            print("FIRST")
+        elif((int(betting)-int(value))<0):
+            newvalue=int(betting)-int(value)
+            value=int(value)+newvalue
+            session["betting"]=value
+            print(value)
+            emit('button_response',{'response':"bet is here"},broadcast=False)
+            emit('update_bettingamount',{'data':value},broadcast=False)
+            print("SEC")
+        else:
+            value=int(betting)-int(value)
+            session["betting"]=value
+            print(value)
+            emit('button_response',{'response':"bet is here"},broadcast=False)
+            emit('update_bettingamount',{'data':value},broadcast=False)
+            print("Third")
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
