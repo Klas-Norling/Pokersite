@@ -3,6 +3,7 @@ from flask_socketio import join_room, leave_room, emit, send, SocketIO
 import random
 from string import ascii_uppercase
 from create_database import User
+from PokerGame import PokerGame
 user=User()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "hjhjsdahhds"
@@ -94,9 +95,11 @@ def connect(auth):
     print(maxplayers," Amount Maxplayers")
     if maxplayers == False:
         print("im in here")
+        session["your_turn"]=1 #0="not your turn", 1="your turn" 
         maxplayers=1
     else:
         maxplayers=maxplayers+1
+        session["your_turn"]=0
     emit('update_values',{'data':maxplayers},to=room)
     emit('update_bettingamount',{'data':betting},broadcast=False)
     user.add_member(room)
@@ -131,18 +134,32 @@ def disconnect():
 def button(data):
     value=data["data"]
     betting=session.get("betting")
-    if value == "check":                #check function
+    session["folded"]=0 #0="not folded", 1="folded" 
+
+    
+    if(session["your_turn"]==0):
+        emit('button_response',{'response':"not your turn"})
+        print("not your turn")
+
+    elif session["folded"]==1:
+        emit('button_response',{'response':"folded"})
+        print("folded")
+
+    elif value == "check":                #check function
         print("check is here")
-        emit('button_response',{'response':"check is here"},broadcast=False)
+        session["your_turn"]=0
+        emit('button_response',{'response':"check is here"},broadcast=False)  #checkar bara om server får kontakt med klienten
 
     elif value == "fold":                #fold function
         print("fold is here")
-        emit('button_response',{'response':"fold is here"},broadcast=False)
+        session["folded"]=1
+        session["your_turn"]=0
+        emit('button_response',{'response':"fold is here"},broadcast=False)  #checkar bara om server får kontakt med klienten
 
     else:                               #Bet function
         print(value, "bet is here")
         print(betting)
-
+        session["your_turn"]=0
         if(int(betting)<=0):
             emit('update_bettingamount',{'data':"YOU HAVE NO MONEY, YOU LOSE"},broadcast=False)
             session["betting"]=0
@@ -152,14 +169,14 @@ def button(data):
             value=int(value)+newvalue
             session["betting"]=value
             print(value)
-            emit('button_response',{'response':"bet is here"},broadcast=False)
+            emit('button_response',{'response':"bet is here"},broadcast=False) #checkar bara om server får kontakt med klienten
             emit('update_bettingamount',{'data':value},broadcast=False)
             print("SEC")
         else:
             value=int(betting)-int(value)
             session["betting"]=value
             print(value)
-            emit('button_response',{'response':"bet is here"},broadcast=False)
+            emit('button_response',{'response':"bet is here"},broadcast=False) #checkar bara om server får kontakt med klienten
             emit('update_bettingamount',{'data':value},broadcast=False)
             print("Third")
 
