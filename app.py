@@ -97,14 +97,22 @@ def connect(auth):
         print("im in here")
         session["your_turn"]=1 #0="not your turn", 1="your turn" 
         maxplayers=1
+        session["PrevPlayer"]=name
+        session["NextPlayer"]=name
+
     else:
         maxplayers=maxplayers+1
-        session["your_turn"]=0
+        session["your_turn"]=1
+        print("NEXTPLAYER ALSO HERE DDDDDD")
+        emit("TurnsInPoker",{'data':'it reaches to nextplayer'}, to=room)    ##Handles turn in the game, also handles handling who is gonna be the next player.
+
     emit('update_values',{'data':maxplayers},to=room)
     emit('update_bettingamount',{'data':betting},broadcast=False)
     user.add_member(room)
     print(f"{name} has joined room {room}")
     print("CONNECT ERROR??====================================END")
+
+     
 
 @socketio.on("disconnect")
 def disconnect():
@@ -179,6 +187,12 @@ def button(data):
             emit('button_response',{'response':"bet is here"},broadcast=False) #checkar bara om server får kontakt med klienten
             emit('update_bettingamount',{'data':value},broadcast=False)
             print("Third")
+
+@socketio.on("NextPlayer")
+def NextPlayer():
+    name=session.get("name")
+    print("NEXTPLAYER FUNCTION HEREEEEEEEEEEEEEEEEEEEEEE"," ", name)
+    
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)

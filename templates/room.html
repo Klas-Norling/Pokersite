@@ -25,6 +25,12 @@
 
   const messages = document.getElementById("messages");
 
+  socketio.on("TurnsInPoker", (data)=>{
+    console.log("reaches here", data.data)
+
+    socketio.emit("NextPlayer")
+  })
+
   socketio.on("button_response", (data)=> {
     console.log(data.response)
 
