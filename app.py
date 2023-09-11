@@ -80,6 +80,7 @@ def connect(auth):
     room=session.get("room")
     name=session.get("name")
     betting=session.get("betting")
+    
     print("CONNECT ERROR??====================================BEGIN")
     if not room or not name:
         print("here")
@@ -93,18 +94,19 @@ def connect(auth):
     send({"name": name, "message":"has joined the room"}, to=room)
     maxplayers=user.member_exists(room)
     print(maxplayers," Amount Maxplayers")
+    session["PrevPlayer"]=name
+    session["NextPlayer"]=name
     if maxplayers == False:
         print("im in here")
         session["your_turn"]=1 #0="not your turn", 1="your turn" 
         maxplayers=1
-        session["PrevPlayer"]=name
-        session["NextPlayer"]=name
-
     else:
         maxplayers=maxplayers+1
         session["your_turn"]=1
         print("NEXTPLAYER ALSO HERE DDDDDD")
-        emit("TurnsInPoker",{'data':'it reaches to nextplayer'}, to=room)    ##Handles turn in the game, also handles handling who is gonna be the next player.
+        PrevP=session.get("PrevPlayer")
+        NextP=session.get("NextPlayer")
+        emit("TurnsInPoker",{'PrevP':PrevP,'NextP':NextP}, to=room)    ##Handles turn in the game, also handles handling who is gonna be the next player.
 
     emit('update_values',{'data':maxplayers},to=room)
     emit('update_bettingamount',{'data':betting},broadcast=False)
@@ -189,9 +191,14 @@ def button(data):
             print("Third")
 
 @socketio.on("NextPlayer")
-def NextPlayer():
+def NextPlayer(data):
+    NextP=data["NextP"]
+    PrevP=data["PrevP"]
+    your_turn=session.get("your_turn")
     name=session.get("name")
-    print("NEXTPLAYER FUNCTION HEREEEEEEEEEEEEEEEEEEEEEE"," ", name)
+    #if(your_turn==1 and name !=)
+
+    print("NEXTPLAYER FUNCTION HEREEEEEEEEEEEEEEEEEEEEEE"," ", PrevP," ", NextP," ",name," ",your_turn)
     
 
 if __name__ == "__main__":

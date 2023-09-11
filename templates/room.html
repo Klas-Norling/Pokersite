@@ -26,9 +26,9 @@
   const messages = document.getElementById("messages");
 
   socketio.on("TurnsInPoker", (data)=>{
-    console.log("reaches here", data.data)
+    console.log("reaches here", data.NextP, data.PrevP)
 
-    socketio.emit("NextPlayer")
+    socketio.emit("NextPlayer", {NextP: data.NextP, PrevP: data.PrevP})
   })
 
   socketio.on("button_response", (data)=> {
