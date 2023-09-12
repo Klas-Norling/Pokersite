@@ -10,6 +10,7 @@ app.config["SECRET_KEY"] = "hjhjsdahhds"
 socketio = SocketIO(app)
 
 @app.route("/", methods=["POST", "GET"])
+@app.route ('/home')
 def home():
     print("REACHES HERE IN HOME__________________________")
     session.clear()
@@ -39,7 +40,9 @@ def home():
         
         session["room"] = room
         session["name"] = name
+
         session["betting"] = betting
+        session["folded"]=0 #0="not folded", 1="folded" 
         return redirect(url_for("room"))
 
     return render_template("home.html")
@@ -80,15 +83,16 @@ def connect(auth):
     room=session.get("room")
     name=session.get("name")
     betting=session.get("betting")
+    print("betting here",betting)
     
     print("CONNECT ERROR??====================================BEGIN")
     if not room or not name:
         print("here")
-        return redirect('/')
+        return redirect(url_for('home'))
     if user.room_exists(room)==False:
         print("also here IM IN HERE")
         leave_room(room)
-        return redirect('/')
+        return redirect(url_for('home'))
     print("am i also here")
     join_room(room)
     send({"name": name, "message":"has joined the room"}, to=room)
@@ -108,7 +112,7 @@ def connect(auth):
     emit("TurnsInPoker",{'Pos':maxplayers,'Event':'Connect'}, broadcast=False)    ##Handles turn in the game, also handles handling who is gonna be the next player.
 
     emit('update_values',{'data':maxplayers},to=room)
-    emit('update_bettingamount',{'data':betting},broadcast=False)
+    emit('update_bettingamount',{'left':betting},broadcast=False)
     user.add_member(room)
     print(f"{name} has joined room {room}")
     print("CONNECT ERROR??====================================END")
@@ -130,7 +134,7 @@ def disconnect():
             print("room deleted")
             print(room)
             user.del_room(room)
-            return redirect('/')
+            return redirect(url_for('home'))
     
     print("After: ",user.show_rooms)
 
@@ -143,15 +147,16 @@ def disconnect():
 def button(data):
     value=data["data"]
     betting=session.get("betting")
-    #session["folded"]=0 #0="not folded", 1="folded" 
+    print(betting,"betting here")
+
 
     
-    if(session["your_turn"]==0):
-        emit('button_response',{'response':"not your turn"})
+    if(session["your_turn"]==1):
+        emit('button_response',{'response':"not your turn"},broadcast=False)
         print("not your turn")
 
     elif session["folded"]==1:
-        emit('button_response',{'response':"folded"})
+        emit('button_response',{'response':"folded"},broadcast=False)
         print("folded")
 
     elif value == "check":                #check function
@@ -170,23 +175,24 @@ def button(data):
         print(betting)
         session["your_turn"]=0
         if(int(betting)<=0):
-            emit('update_bettingamount',{'data':"YOU HAVE NO MONEY, YOU LOSE"},broadcast=False)
+            emit('update_bettingamount',{'betted':0,'left':"YOU HAVE NO MONEY, YOU LOSE"},broadcast=False)
             session["betting"]=0
             print("FIRST")
         elif((int(betting)-int(value))<0):
-            newvalue=int(betting)-int(value)
-            value=int(value)+newvalue
-            session["betting"]=value
-            print(value)
+            temp=betting
+            session["betting"]=0
+            print(temp)
             emit('button_response',{'response':"bet is here"},broadcast=False) #checkar bara om server får kontakt med klienten
-            emit('update_bettingamount',{'data':value},broadcast=False)
+            emit('update_bettingamount',{'betted':temp,'left':0},broadcast=False)
             print("SEC")
         else:
+            temp=value
             value=int(betting)-int(value)
             session["betting"]=value
-            print(value)
+            print("LEFT: ",value)
+            print("AMOUNT BETTED: ", temp)
             emit('button_response',{'response':"bet is here"},broadcast=False) #checkar bara om server får kontakt med klienten
-            emit('update_bettingamount',{'data':value},broadcast=False)
+            emit('update_bettingamount',{'betted':temp,'left':value},broadcast=False)
             print("Third")
 
 @socketio.on("NextPlayer")

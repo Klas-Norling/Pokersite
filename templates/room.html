@@ -43,8 +43,8 @@
 
   socketio.on("update_bettingamount", (data) => { //update the values in betting amount 
     const values = document.getElementById("bettingamount");
-    console.log("betting amount", data.data)
-    values.innerHTML=`${data.data}`;
+    console.log("betting left:", data.left,"\namount betted:",data.betted)
+    values.innerHTML=`${data.left}`;
 
   });
 
