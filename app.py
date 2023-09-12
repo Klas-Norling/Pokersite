@@ -11,7 +11,7 @@ socketio = SocketIO(app)
 
 @app.route("/", methods=["POST", "GET"])
 def home():
-
+    print("REACHES HERE IN HOME__________________________")
     session.clear()
     if request.method == "POST":
         name = request.form.get("name")
@@ -94,19 +94,18 @@ def connect(auth):
     send({"name": name, "message":"has joined the room"}, to=room)
     maxplayers=user.member_exists(room)
     print(maxplayers," Amount Maxplayers")
-    session["PrevPlayer"]=name
-    session["NextPlayer"]=name
+    
     if maxplayers == False:
         print("im in here")
-        session["your_turn"]=1 #0="not your turn", 1="your turn" 
+        session["your_turn"]="FirstPlayer" #0="not your turn", 1="your turn" 
         maxplayers=1
+        session["pos"]=maxplayers
     else:
         maxplayers=maxplayers+1
+        session["pos"]=maxplayers
         session["your_turn"]=1
         print("NEXTPLAYER ALSO HERE DDDDDD")
-        PrevP=session.get("PrevPlayer")
-        NextP=session.get("NextPlayer")
-        emit("TurnsInPoker",{'PrevP':PrevP,'NextP':NextP}, to=room)    ##Handles turn in the game, also handles handling who is gonna be the next player.
+    emit("TurnsInPoker",{'Pos':maxplayers,'Event':'Connect'}, broadcast=False)    ##Handles turn in the game, also handles handling who is gonna be the next player.
 
     emit('update_values',{'data':maxplayers},to=room)
     emit('update_bettingamount',{'data':betting},broadcast=False)
@@ -144,7 +143,7 @@ def disconnect():
 def button(data):
     value=data["data"]
     betting=session.get("betting")
-    session["folded"]=0 #0="not folded", 1="folded" 
+    #session["folded"]=0 #0="not folded", 1="folded" 
 
     
     if(session["your_turn"]==0):
@@ -192,13 +191,7 @@ def button(data):
 
 @socketio.on("NextPlayer")
 def NextPlayer(data):
-    NextP=data["NextP"]
-    PrevP=data["PrevP"]
-    your_turn=session.get("your_turn")
-    name=session.get("name")
-    #if(your_turn==1 and name !=)
-
-    print("NEXTPLAYER FUNCTION HEREEEEEEEEEEEEEEEEEEEEEE"," ", PrevP," ", NextP," ",name," ",your_turn)
+    pass
     
 
 if __name__ == "__main__":

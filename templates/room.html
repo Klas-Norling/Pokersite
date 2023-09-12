@@ -26,9 +26,7 @@
   const messages = document.getElementById("messages");
 
   socketio.on("TurnsInPoker", (data)=>{
-    console.log("reaches here", data.NextP, data.PrevP)
-
-    socketio.emit("NextPlayer", {NextP: data.NextP, PrevP: data.PrevP})
+    console.log("reaches here", data.Pos, data.Event)
   })
 
   socketio.on("button_response", (data)=> {
@@ -38,14 +36,14 @@
 
   socketio.on("update_values", (data) => { //update the values in maxplayer count 
     const values = document.getElementById("maxplayer");
-    console.log(data.data)
+    console.log("Maxplayers",data.data)
     values.innerHTML=`Players: ${data.data}/8`;
 
   });
 
   socketio.on("update_bettingamount", (data) => { //update the values in betting amount 
     const values = document.getElementById("bettingamount");
-    console.log(data.data)
+    console.log("betting amount", data.data)
     values.innerHTML=`${data.data}`;
 
   });
