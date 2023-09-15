@@ -21,16 +21,31 @@
 
 <script type="text/javascript">
 
+  let sesdata=sessionStorage.getItem("your_turn")
+  
+  if(sesdata === undefined || sesdata == null || sesdata.length <= 0){
+     console.log("true")
+     sessionStorage.setItem("your_turn", 1);
+  }
+
+
   var socketio = io();
 
   const messages = document.getElementById("messages");
 
+
+
   socketio.on("TurnsInPoker", (data)=>{
-    console.log("reaches here", data.Pos, data.Event)
+    console.log("reaches here ", data.Pos, data.Event)
+    sessionStorage.setItem("Pos", data.Pos);
+    let sesdata =sessionStorage.getItem("Pos")
+    console.log("also reaches here ",sesdata)
   })
 
   socketio.on("button_response", (data)=> {
     console.log(data.response)
+    console.log("hellooooo",data.your_turn)
+    sessionStorage.setItem("your_turn", data.your_turn)
 
   });
 
@@ -73,18 +88,27 @@
 
 
   const check = () => {
-    socketio.emit("button", {data: "check"});
+    let sesdata =sessionStorage.getItem("Pos")
+    let sesturn =sessionStorage.getItem("your_turn")
+    console.log(sesturn)
+    socketio.emit("button", {data: "check", Pos: sesdata, your_turn: sesturn});
   };
 
   const bet = () => {
+    let sesdata =sessionStorage.getItem("Pos")
+    let sesturn =sessionStorage.getItem("your_turn")
     const bet = document.getElementById("bet");
+    console.log(sesturn)
     if (bet.value == "") return;
-    socketio.emit("button", {data: bet.value});
+    socketio.emit("button", {data: bet.value, Pos: sesdata, your_turn: sesturn});
     message.value = "";
   };
 
   const fold = () => {
-    socketio.emit("button", {data: "fold"});
+    let sesdata =sessionStorage.getItem("Pos")
+    let sesturn =sessionStorage.getItem("your_turn")
+    console.log(sesturn)
+    socketio.emit("button", {data: "fold", Pos: sesdata, your_turn: sesturn});
   };
 
 </script>

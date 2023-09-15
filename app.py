@@ -40,7 +40,7 @@ def home():
         
         session["room"] = room
         session["name"] = name
-
+        session["your_turn"] = 1
         session["betting"] = betting
         session["folded"]=0 #0="not folded", 1="folded" 
         return redirect(url_for("room"))
@@ -101,13 +101,10 @@ def connect(auth):
     
     if maxplayers == False:
         print("im in here")
-        session["your_turn"]="FirstPlayer" #0="not your turn", 1="your turn" 
         maxplayers=1
         session["pos"]=maxplayers
     else:
         maxplayers=maxplayers+1
-        session["pos"]=maxplayers
-        session["your_turn"]=1
         print("NEXTPLAYER ALSO HERE DDDDDD")
     emit("TurnsInPoker",{'Pos':maxplayers,'Event':'Connect'}, broadcast=False)    ##Handles turn in the game, also handles handling who is gonna be the next player.
 
@@ -145,53 +142,69 @@ def disconnect():
 
 @socketio.on("button")
 def button(data):
+    room=session.get("room")
     value=data["data"]
+    Pos=int(data["Pos"])
+    your_turn=int(data["your_turn"])
+    print(your_turn)
     betting=session.get("betting")
     print(betting,"betting here")
+    print("your turn: ", your_turn, " AND Pos", Pos)
 
+    if(Pos!=your_turn):      #if 
+        emit('button_response',{'response':"not your turn",'your_turn':your_turn},broadcast=False)
 
-    
-    if(session["your_turn"]==1):
-        emit('button_response',{'response':"not your turn"},broadcast=False)
         print("not your turn")
 
     elif session["folded"]==1:
-        emit('button_response',{'response':"folded"},broadcast=False)
+        emit('button_response',{'response':"folded",'your_turn':your_turn},broadcast=False)
         print("folded")
 
-    elif value == "check":                #check function
-        print("check is here")
-        session["your_turn"]=0
-        emit('button_response',{'response':"check is here"},broadcast=False)  #checkar bara om server får kontakt med klienten
 
-    elif value == "fold":                #fold function
+    elif value == "check":                #check function
+
+        print("value of the string: ",your_turn)
+        your_turn=your_turn+1
+        print("your turn: ", your_turn)
+        print("check is here")
+        emit('button_response',{'your_turn':your_turn}, to=room)
+
+
+    elif value == "fold":
+ 
+        print("your turn: ", your_turn)                #fold function
         print("fold is here")
-        session["folded"]=1
-        session["your_turn"]=0
-        emit('button_response',{'response':"fold is here"},broadcast=False)  #checkar bara om server får kontakt med klienten
+        your_turn=your_turn+1
+        emit('button_response',{'your_turn':your_turn}, to=room)
+
+
 
     else:                               #Bet function
+        int(your_turn)
         print(value, "bet is here")
         print(betting)
-        session["your_turn"]=0
+        your_turn=your_turn+1
+        print("your turn: ", your_turn)
+        emit('button_response',{'your_turn':your_turn}, to=room) #checkar bara om server får kontakt med klienten
+        
         if(int(betting)<=0):
             emit('update_bettingamount',{'betted':0,'left':"YOU HAVE NO MONEY, YOU LOSE"},broadcast=False)
             session["betting"]=0
             print("FIRST")
+
         elif((int(betting)-int(value))<0):
             temp=betting
             session["betting"]=0
             print(temp)
-            emit('button_response',{'response':"bet is here"},broadcast=False) #checkar bara om server får kontakt med klienten
             emit('update_bettingamount',{'betted':temp,'left':0},broadcast=False)
             print("SEC")
+
         else:
             temp=value
             value=int(betting)-int(value)
             session["betting"]=value
             print("LEFT: ",value)
             print("AMOUNT BETTED: ", temp)
-            emit('button_response',{'response':"bet is here"},broadcast=False) #checkar bara om server får kontakt med klienten
             emit('update_bettingamount',{'betted':temp,'left':value},broadcast=False)
             print("Third")
 
