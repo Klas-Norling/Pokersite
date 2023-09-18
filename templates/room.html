@@ -53,6 +53,7 @@
     const values = document.getElementById("maxplayer");
     console.log("Maxplayers",data.data)
     values.innerHTML=`Players: ${data.data}/8`;
+    sessionStorage.setItem("MaxPlayers", data.data)
 
   });
 
@@ -90,25 +91,29 @@
   const check = () => {
     let sesdata =sessionStorage.getItem("Pos")
     let sesturn =sessionStorage.getItem("your_turn")
+    let sesMaxPlayers = sessionStorage.getItem("MaxPlayers")
     console.log(sesturn)
-    socketio.emit("button", {data: "check", Pos: sesdata, your_turn: sesturn});
+    
+    socketio.emit("button", {data: "check", Pos: sesdata, your_turn: sesturn, MaxPlayers:sesMaxPlayers });
   };
 
   const bet = () => {
     let sesdata =sessionStorage.getItem("Pos")
     let sesturn =sessionStorage.getItem("your_turn")
+    let sesMaxPlayers = sessionStorage.getItem("MaxPlayers")
     const bet = document.getElementById("bet");
     console.log(sesturn)
     if (bet.value == "") return;
-    socketio.emit("button", {data: bet.value, Pos: sesdata, your_turn: sesturn});
+    socketio.emit("button", {data: bet.value, Pos: sesdata, your_turn: sesturn, MaxPlayers:sesMaxPlayers});
     message.value = "";
   };
 
   const fold = () => {
     let sesdata =sessionStorage.getItem("Pos")
     let sesturn =sessionStorage.getItem("your_turn")
+    let sesMaxPlayers = sessionStorage.getItem("MaxPlayers")
     console.log(sesturn)
-    socketio.emit("button", {data: "fold", Pos: sesdata, your_turn: sesturn});
+    socketio.emit("button", {data: "fold", Pos: sesdata, your_turn: sesturn, MaxPlayers:sesMaxPlayers});
   };
 
 </script>

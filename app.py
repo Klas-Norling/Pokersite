@@ -146,17 +146,21 @@ def button(data):
     value=data["data"]
     Pos=int(data["Pos"])
     your_turn=int(data["your_turn"])
+    MaxPlayers=int(data["MaxPlayers"])
+    print("\nMaxPlayers is this amount: ", MaxPlayers)
     print(your_turn)
     betting=session.get("betting")
     print(betting,"betting here")
     print("your turn: ", your_turn, " AND Pos", Pos)
 
-    if(Pos!=your_turn):      #if 
-        emit('button_response',{'response':"not your turn",'your_turn':your_turn},broadcast=False)
+    your_turn=CycleEnd(MaxPlayers, your_turn, Pos)
 
-        print("not your turn")
+    if(Pos!=your_turn and your_turn!=0):      #if 
+        emit('button_response',{'response':"not your turn",'your_turn':your_turn},broadcast=False)
+        print("not your turn HELLOOOOOOOO")
 
     elif session["folded"]==1:
+        your_turn=your_turn+1
         emit('button_response',{'response':"folded",'your_turn':your_turn},broadcast=False)
         print("folded")
 
@@ -208,9 +212,13 @@ def button(data):
             emit('update_bettingamount',{'betted':temp,'left':value},broadcast=False)
             print("Third")
 
-@socketio.on("NextPlayer")
-def NextPlayer(data):
-    pass
+def CycleEnd(MaxPlayers, your_turn, Pos):
+    if MaxPlayers == your_turn == Pos:
+        return 0
+    else:
+        return your_turn
+
+
     
 
 if __name__ == "__main__":
